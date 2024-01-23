@@ -648,6 +648,8 @@ switch [get_value $::runtime::compiler] {
     # -------------------------------------------------------------------------
         set ::runtime::app_config 1
         # 1. Generate Faust IP and Host Application cpp files
+	set tstep1  [clock seconds]
+	puts "STEP0=[expr {($tstep1 - $tstart)}] seconds, init"
         if [is_run_step "--arch"] {
             Faust::generate_ip_hls $::runtime::dsp_target
             # Generate sources with set number of channels
@@ -659,12 +661,16 @@ switch [get_value $::runtime::compiler] {
                                  $::Syfala::ARCH_ARM_FILE_HLS
         }
         # 2. Synthesize IP with Vitis HLS
+	set tstep2  [clock seconds]
+	puts "STEP1=[expr {($tstep2 - $tstep1)}] seconds, arch"
         if [is_run_step "--hls"] {
             Xilinx::Vitis_HLS::run $::Syfala::HLS_SCRIPT                \
                                    [get_value $::runtime::board]
         }
 
         # 3. Run Vivado to generate the full project
+	set tstep3  [clock seconds]
+	puts "STEP2=[expr {($tstep3 - $tstep2)}] seconds, hls"
         if [is_run_step "--project"] {
             Xilinx::Vivado::run $::Syfala::PROJECT_SCRIPT               \
                                 [get_value $::runtime::board]           \
@@ -678,12 +684,18 @@ switch [get_value $::runtime::compiler] {
         print_ok "Selected faust2vhdl configuration"
     # -------------------------------------------------------------------------
         set ::runtime::app_config 0
+	set tstep1  [clock seconds]
+	puts "STEP0=[expr {($tstep1 - $tstart)}] seconds, init"
         if [is_run_step "--arch"] {
             Faust::generate_ip_vhdl $::runtime::dsp_target             \
                                     [get_value $::runtime::vhdl_type]
             Faust::generate_host    $::runtime::dsp_target             \
                                     $::Syfala::ARCH_ARM_FILE_VHDL
         }
+	set tstep2  [clock seconds]
+	puts "STEP1=[expr {($tstep2 - $tstep1)}] seconds, arch"
+	set tstep3  [clock seconds]
+	puts "STEP2=[expr {($tstep3 - $tstep2)}] seconds, hls"
         if [is_run_step "--project"] {
             Xilinx::Vivado::run $Syfala::FAUST2VHDL_SCRIPT             \
                                 [get_value $::runtime::board]
@@ -695,27 +707,46 @@ switch [get_value $::runtime::compiler] {
 # common steps
 # -------------------------------------------------------------------------
 
+set tstep4  [clock seconds]
+puts "STEP3=[expr {($tstep4 - $tstep3)}] seconds, project"
 # 4. Synthesize the whole design
 if [is_run_step "--synth"] {
      Xilinx::Vivado::run $::Syfala::SYNTHESIS_SCRIPT
 }
+
+set tstep5  [clock seconds]
+puts "STEP4=[expr {($tstep5 - $tstep4)}] seconds, synthesis"
 # 5. Compile Host Control Application
 if [is_run_step "--host"] {
      Xilinx::compile_host $::runtime::app_config [get_value $::runtime::board]
 }
+
+set tstep6  [clock seconds]
+puts "STEP5=[expr {($tstep6 - $tstep5)}] seconds, host"
 if [is_run_step "--gui"] {
     Faust::generate_gui_app $::runtime::dsp_target
 }
+
+set tstep7  [clock seconds]
+puts "STEP6=[expr {($tstep7 - $tstep6)}] seconds, gui"
 if [is_post_run_step "--export"] {
     Syfala::export_build $::runtime::export_id
 }
+
+set tstep8  [clock seconds]
+puts "STEP7=[expr {($tstep8 - $tstep7)}] seconds, export"
 if [is_post_run_step "--report"] {
     Xilinx::Vitis_HLS::report
 }
+
+set tstep9  [clock seconds]
+puts "STEP8=[expr {($tstep9 - $tstep8)}] seconds, report"
 if [is_post_run_step "--flash"] {
     Xilinx::flash_jtag [get_value $::runtime::board]
 }
 
+set tfinish  [clock seconds]
+puts "STEP9=[expr {($tfinish - $tstep9)}] seconds, flash"
 print_elapsed_time $tstart
 print_ok "Successful run!"
 print_ok "To see the build's full log: open 'syfala_log.txt' in the repository's root directory"
