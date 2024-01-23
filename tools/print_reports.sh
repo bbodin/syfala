@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #up=A, down=B, forward=C, backward=D
-project_directory=$1
+build_directory=$1
 compiler_version=$2
 dspFile=$3
 board=$4
@@ -16,26 +16,26 @@ mem_w=${12}
 
 date=$(date +'%m/%d/%Y')
 
-if [ -f "$project_directory/build/syfala_ip/syfala_ip.cpp" ]; then
+if [ -f "$build_directory/syfala_ip/syfala_ip.cpp" ]; then
   arch_exist=1
 else
   arch_exist=0
 fi
 
-if [ -f "$project_directory/build/vitis_hls.log" ]; then
-  ip_exist=$(grep -q "Generated output file" "$project_directory/build/vitis_hls.log" ; echo $?) #2: donesn't exist, 1: failed; 0: Success!
+if [ -f "$build_directory/vitis_hls.log" ]; then
+  ip_exist=$(grep -q "Generated output file" "$build_directory/vitis_hls.log" ; echo $?) #2: donesn't exist, 1: failed; 0: Success!
 else
   ip_exist=2
 fi
 
-if [ -f "$project_directory/build/vivado.log" ]; then
-  project_exist=$(grep -q "Successfully created Hardware Platform" "$project_directory/build/vivado.log" ; echo $?) #2: donesn't exist, 1: failed; 0: Success!
+if [ -f "$build_directory/vivado.log" ]; then
+  project_exist=$(grep -q "Successfully created Hardware Platform" "$build_directory/vivado.log" ; echo $?) #2: donesn't exist, 1: failed; 0: Success!
 else
   project_exist=2
 fi
 
-if [ -d "$project_directory/build/syfala_application/platform" ]; then
-    if [ -f "$project_directory/build/sw_export/application.elf" ]; then
+if [ -d "$build_directory/syfala_application/platform" ]; then
+    if [ -f "$build_directory/sw_export/application.elf" ]; then
         app_exist=0 #0: Success!
     else
         app_exist=1 #1: failed
@@ -45,8 +45,8 @@ else
 fi
 
 
-if [ -d "$project_directory/build/gui" ]; then
-    if [ -f "$project_directory/build/gui/faust-gui" ]; then
+if [ -d "$build_directory/gui" ]; then
+    if [ -f "$build_directory/gui/faust-gui" ]; then
         gui_exist=0 #0: Success!
     else
         gui_exist=1 #1: failed
@@ -57,48 +57,48 @@ fi
 #---------------------------------------------------
 if [[ $ip_exist == "0" ]]
 then
-ip_date=$(tail -1 "$project_directory/build/vitis_hls.log" |rev| cut -b8-23 | rev)
+ip_date=$(tail -1 "$build_directory/vitis_hls.log" |rev| cut -b8-23 | rev)
 
 
 ((periodeRef=10000000/$sample_rate))
-clock=$(grep -m 1 -A 2 "Clock" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | tail -n 1 | cut -d "|" -f3 | cut -d "." -f1)
+clock=$(grep -m 1 -A 2 "Clock" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | tail -n 1 | cut -d "|" -f3 | cut -d "." -f1)
 
-latency=$(grep -m 1 -A 3 "Latency (cycles)" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | tail -n 1 | cut -d "|" -f3)
-latencyUs=$(grep -m 1 -A 3 "Latency (cycles)" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | tail -n 1 | cut -d "|" -f5)
+latency=$(grep -m 1 -A 3 "Latency (cycles)" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | tail -n 1 | cut -d "|" -f3)
+latencyUs=$(grep -m 1 -A 3 "Latency (cycles)" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | tail -n 1 | cut -d "|" -f5)
 latencyNumber=$(echo $latencyUs | sed 's|[^0-9.]||g')
 MEGA="1000"
 latencyNs=$(awk '{print $1*$2}' <<<"${latencyNumber} ${MEGA}")
 
-TTbram=$(grep -m 1 "Total" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f3)
-TTdsp=$(grep -m 1 "Total" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f4)
-TTff=$(grep -m 1 "Total" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f5)
-TTlut=$(grep -m 1 "Total" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f6)
+TTbram=$(grep -m 1 "Total" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f3)
+TTdsp=$(grep -m 1 "Total" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f4)
+TTff=$(grep -m 1 "Total" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f5)
+TTlut=$(grep -m 1 "Total" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f6)
 
-bram=$(grep -m 1 "Utilization (%)" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f3)
-dsp=$(grep -m 1 "Utilization (%)" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f4)
-ff=$(grep -m 1 "Utilization (%)" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f5)
-lut=$(grep -m 1 "Utilization (%)" "$project_directory//build/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f6)
+bram=$(grep -m 1 "Utilization (%)" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f3)
+dsp=$(grep -m 1 "Utilization (%)" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f4)
+ff=$(grep -m 1 "Utilization (%)" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f5)
+lut=$(grep -m 1 "Utilization (%)" "$build_directory/syfala_ip/syfala/syn/report/syfala_csynth.rpt" | cut -d "|" -f6)
 fi
 if [[ $project_exist == "0" ]]
 then
-project_date=$(tail -1 "$project_directory/build/vivado.log" |rev| cut -b8-23 | rev)
-app_date=$(ls -l  --time-style locale "$project_directory/build/sw_export/application.elf" |rev| cut -b76-89 | rev)
+project_date=$(tail -1 "$build_directory/vivado.log" |rev| cut -b8-23 | rev)
+app_date=$(ls -l  --time-style locale "$build_directory/sw_export/application.elf" |rev| cut -b76-89 | rev)
 
-Vlut=$(grep -m 1 "LUTs" "$project_directory/build/syfala_project/syfala_project.runs/impl_1/main_wrapper_utilization_placed.rpt" | rev | cut -d "|" -f2 | rev | cut -d "." -f1) #get last field to be compatible with 2020 and 2022
-Vreg=$(grep -m 1 "Register" "$project_directory/build/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f6 | cut -d "." -f1)
-Vbram=$(grep -m 1 "Block RAM" "$project_directory/build/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f6 | cut -d "." -f1)
-Vdsp=$(grep -m 1 "DSPs" "$project_directory/build/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f6 | cut -d "." -f1)
+Vlut=$(grep -m 1 "LUTs" "$build_directory/syfala_project/syfala_project.runs/impl_1/main_wrapper_utilization_placed.rpt" | rev | cut -d "|" -f2 | rev | cut -d "." -f1) #get last field to be compatible with 2020 and 2022
+Vreg=$(grep -m 1 "Register" "$build_directory/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f6 | cut -d "." -f1)
+Vbram=$(grep -m 1 "Block RAM" "$build_directory/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f6 | cut -d "." -f1)
+Vdsp=$(grep -m 1 "DSPs" "$build_directory/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f6 | cut -d "." -f1)
 
-TTVlut=$(grep -m 1 "LUTs" "$project_directory/build/syfala_project/syfala_project.runs/impl_1/main_wrapper_utilization_placed.rpt" | cut -d "|" -f3)
-TTVreg=$(grep -m 1 "Register" "$project_directory/build/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f4)
-TTVbram=$(grep -m 1 "Block RAM" "$project_directory/build/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f4 | cut -d "." -f1)
-TTVdsp=$(grep -m 1 "DSPs" "$project_directory/build/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f4)
+TTVlut=$(grep -m 1 "LUTs" "$build_directory/syfala_project/syfala_project.runs/impl_1/main_wrapper_utilization_placed.rpt" | cut -d "|" -f3)
+TTVreg=$(grep -m 1 "Register" "$build_directory/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f4)
+TTVbram=$(grep -m 1 "Block RAM" "$build_directory/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f4 | cut -d "." -f1)
+TTVdsp=$(grep -m 1 "DSPs" "$build_directory/syfala_project/syfala_project.runs/impl_1/main_wrapper_power_routed.rpt" | cut -d "|" -f4)
 fi
 
 if [[ $gui_exist == "0" ]]
 then
-GUIslider=$(grep -o "addHorizontalSlider" $project_directory/build/gui/faust-gui.cpp  | wc -l)
-GUIbutton=$(grep -o "addButton" $project_directory/build/gui/faust-gui.cpp  | wc -l)
+GUIslider=$(grep -o "addHorizontalSlider" $build_directory/gui/faust-gui.cpp  | wc -l)
+GUIbutton=$(grep -o "addButton" $build_directory/gui/faust-gui.cpp  | wc -l)
 fi
 
 move_cursor_abs () {

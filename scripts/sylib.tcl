@@ -25,6 +25,11 @@ set CONFIG_FILE                 $INCLUDE_DIR/syconfig.hpp
 set DEFAULT_EXAMPLE             $ROOT/examples/virtualAnalog.dsp
 set CLK_DYNAMIC_RECONFIG        0
 
+## WORKAROUND TO SET MULTIPLE BUILD DIRS
+if {[info exists env(SYFALA_BUILD_DIR)]} {
+    set BUILD_DIR $env(SYFALA_BUILD_DIR) 
+}
+
 # -----------------------------------------------------------------------------
 # build
 # -----------------------------------------------------------------------------

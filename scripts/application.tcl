@@ -13,7 +13,7 @@
 # Doc(old): https://www.xilinx.com/html_docs/xilinx2019_1/SDK_Doc/xsct/sdk/reference_xsct_sdk.html
 # Doc(new): https://www.xilinx.com/html_docs/xilinx2020_2/vitis_doc/lnw1585821549819.html
 ############## File based on copie from vitis project plateform (path changed)
-source ../scripts/sylib.tcl
+source [file join [file dirname [info script]] "../scripts/sylib.tcl"]
 namespace import Syfala::*
 
 set CONFIG [lindex $argv 0]

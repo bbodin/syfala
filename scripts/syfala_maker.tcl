@@ -1,5 +1,5 @@
 #!/usr/bin/tclsh
-source ../scripts/syfala_maker_utils.tcl
+source $::Syfala::SCRIPTS_DIR/syfala_maker_utils.tcl
 
 set FAUST_INPUTS    $::runtime::nchannels_i
 set FAUST_OUTPUTS   $::runtime::nchannels_o
@@ -544,6 +544,8 @@ if { $BOARD == "Z10" || $BOARD == "Z20" } {
     append address "  exclude_bd_addr_seg -offset 0xFF000000 -range 0x01000000 -target_address_space \[get_bd_addr_spaces syfala/Data_$m_axi_ram\] \[get_bd_addr_segs zynq_ultra_ps_e_0/SAXIGP2/HP0_LPS_OCM\]\n"
 }
 
+# First line is sourcing the sylib.tcl file
+puts $generated_project_file  [string cat "source " $::Syfala::SCRIPTS_DIR "/sylib.tcl"]
 
 while {[gets $project_file line] >= 0} {
 
@@ -570,9 +572,9 @@ while {[gets $project_file line] >= 0} {
             puts $generated_project_file $address
         } elseif {[string first "<<PS_CONFIG>>" $line] != -1} {
             if { $BOARD == "Z10" || $BOARD == "Z20" } {
-                set ps_config_file [open "../scripts/bd_res/zybo_ps7.config" r]
+                set ps_config_file [open "$::Syfala::SCRIPTS_DIR/bd_res/zybo_ps7.config" r]
             } elseif { $BOARD == "GENESYS" } {
-                set ps_config_file [open "../scripts/bd_res/genesys_psu.config" r]
+                set ps_config_file [open "$::Syfala::SCRIPTS_DIR/bd_res/genesys_psu.config" r]
             }
             while {[gets $ps_config_file line_config] >= 0} {
                     puts $generated_project_file $line_config

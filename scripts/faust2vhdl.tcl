@@ -1,4 +1,4 @@
-source ../scripts/sylib.tcl
+source [file join [file dirname [info script]] "../scripts/sylib.tcl"]
 namespace import Xilinx::Boards::*
 namespace import Syfala::*
 

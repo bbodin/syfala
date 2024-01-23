@@ -291,7 +291,7 @@ proc display_report {} {
         }
     }
     exec $::Syfala::ROOT/tools/print_reports.sh     \
-            $path                                   \
+            $::Syfala::BUILD_DIR                    \
             $version                                \
             $dsp                                    \
             $board                                  \

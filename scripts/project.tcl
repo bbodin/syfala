@@ -1,4 +1,3 @@
-source ../scripts/sylib.tcl
 namespace import Xilinx::Boards::*
 namespace import Syfala::*
 

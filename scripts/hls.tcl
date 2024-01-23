@@ -1,5 +1,5 @@
 # here, pwd should be $SYFALA_BUILD_DIR
-source ../scripts/sylib.tcl
+source [file join [file dirname [info script]] "../scripts/sylib.tcl"]
 namespace import Syfala::*
 
 # note '-f' and 'fpga_hls.tcl' are the two first arguments

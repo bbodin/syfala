@@ -6,7 +6,7 @@
 # doc(new): https://www.xilinx.com/html_docs/xilinx2020_2/vitis_doc/usu1543754625982.html
 # example: https://gist.github.com/imrickysu/b911be34cf7fffc1b9259610095973fd
 # example: https://forums.xilinx.com/t5/Processor-System-Design-and-AXI/quot-Memory-write-error-at-0x100000-Cannot-access-DDR-the/td-p/993089
-source ../scripts/sylib.tcl
+source [file join [file dirname [info script]] "../scripts/sylib.tcl"]
 namespace import Syfala::*
 
 
